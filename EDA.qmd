@@ -4,6 +4,102 @@ format: html
 editor: visual
 ---
 
+Setups
+```{r setup, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(corrplot)
+```
+
+## Introduction
+
+### About the Dataset
+
+This dataset contains health indicators related to diabetes status.
+
+Response variable:
+
+Diabetes_binary, indicating the presence or absence of diabetes. 1 for individuals diagnosed with diabetes and 0 for individuals without diabetes.
+
+Predictor Variables:
+
+
+Read in the dataset
+```{r}
+diabetes <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+
+```
+Notice that all the variables are numeric, but most of them (except BMI, MentHlth, PhysHlth, Age) are actually factors with different levels. We need to convert them to factors.
+
+```{r}
+# List of variables to remain numeric
+numeric_vars <- c("BMI", "MentHlth", "PhysHlth", "Age")
+
+# Convert all other variables to factors
+diabetes <- diabetes |>
+  mutate(across(-all_of(numeric_vars), as.factor))
+
+# Verify the conversions
+str(diabetes)
+```
+
+Check on missing values in the dataset
+
+```{r}
+sum(is.na(diabetes))
+```
+
+Data set does not contain any missing values.
+
+### Summaries
+
+```{r}
+# Summary statistics for BMI, MentHlth and PhysHlth variables
+summary(diabetes %>% select(BMI, MentHlth,PhysHlth))
+```
+From the output above, the min BMI is 12 but the Max is 98. The number of days in the past 30days has mental health not good (MentHlth) vary from 0 as min to 30 as max. Same as PhysHlth which stands for number of days of physical health not good in the past 30 days.
+
+Let's calculate and plot the correlation between the numerical variables.
+
+```{r}
+m <- cor(select(diabetes, c('BMI','MentHlth','PhysHlth')))
+corrplot(m,method='color',
+         order='alphabet',
+         diag=FALSE,
+         col=COL2('PiYG'))
+```
+
+It seems PhysHlth and MentHlth are moderately linear correlated, and also PhysHlth has some positive linear correlation with BMI. 
+
+Now, let's see Diabetes_binary in the context of BMI
+ggplot()
+```{r}
+# Create a box plot
+ggplot(diabetes, aes(x = Diabetes_binary, y = BMI, fill=Sex)) +
+  geom_boxplot() +
+  labs(x = "Diabetes_binary", y = "BMI", title = "Box Plot of BMI by Diabetes Status") +
+  theme_minimal()
+```
+As shown in the above boxplot, BMI does not vary between different Diabetes_binary.
+
+Let's see Diabetes_binary with highBP and highChol
+```{r}
+# Create a bar plot for Diabetes_binary and HighBP
+ggplot(diabetes, aes(x = Diabetes_binary, fill = HighBP)) +
+  geom_bar(position = "fill") +
+  labs(x = "Diabetes_binary)", fill = "High BP", y = "Proportion", title = "Proportion of High BP by Diabetes Status") +
+  theme_minimal()
+
+# Create a bar plot for Diabetes_binary and HighChol
+ggplot(diabetes, aes(x = Diabetes_binary, fill = HighChol)) +
+  geom_bar(position = "fill") +
+  labs(x = "Diabetes (binary)", fill = "High Cholesterol", y = "Proportion", title = "Proportion of High Cholesterol by Diabetes Status") +
+  theme_minimal()
+```
+
+From the graphs plotted above, both with high HighChol and HighBP have a higher proportion of diabetes.
+
+
+
 
 
 
