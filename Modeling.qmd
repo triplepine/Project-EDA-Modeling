@@ -4,23 +4,156 @@ format: html
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+```{r setup, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(corrplot)
+library(caret)
+library(Metrics)
+library(ROSE)
 ```
 
-You can add options to executable code like this
+### Modeling
 
+Our goal is to use the diabetes data set to create models for predicting the Diabetes_binary variable (using caret). We will use logLoss as our metric to evaluate models. For all model types use logLoss with 5 fold cross-validation to select the best model.
+
+About logLoss
+
+Logarithmic Loss, also known as LogLoss, is a performance metric for evaluating the predictions of probabilities of binary (or multiclass) classification models. It measures the uncertainty of our predictions based on how much they diverge from the actual labels. Lower LogLoss values indicate better performance.
+
+Why we prefer logLoss here to things like accuracy?
+
+While accuracy is a straightforward and intuitive metric, it has limitations in the context of probabilistic predictions and imbalanced datasets. Accuracy only considers whether the predicted class matches the actual class, without considering the confidence of the predictions. A model that predicts a low probability for the correct class is considered equally good as one that predicts 0.99. LogLoss penalizes predictions that are confident but wrong more heavily than those that are less confident. It provides a better measure of the quality of the probability estimates. In datasets with imbalanced classes, accuracy can be misleading. A model that always predicts the majority class can have high accuracy but poor performance in terms of identifying the minority class. LogLoss considers the probability of the minority class and provides a more informative evaluation.
+
+# Load the processed data
 ```{r}
-#| echo: false
-2 * 2
+diabetes <- readRDS("processed_diabetes.rds")
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+#### Split the Data
+
+Now split the data into a training (70% of the data) and test set (30% of the data).
+
+```{r}
+set.seed(123)
+split <- createDataPartition(y=diabetes$Diabetes_binary, p=0.7,list=FALSE)
+train <-diabetes[split, ]
+test <-diabetes[-split, ]
+```
+
+#### Logistic Regression Models
+
+Logistic Regression is a statistical method used for binary classification problems, where the response variable can take on one of two possible outcomes. It allows for response from non-normal distribution and can have both continuous and categorical predictors. In our case, the response variable (Diabetes_binary) indicates whether a person has diabetes (Yes) or does not have diabetes (No).
+
+Fitting three Candidate Logistic Regression models
+
+```{r}
+# Set up cross-validation 
+control <- trainControl(method = "cv", 
+                        number = 5,
+                        classProbs = TRUE, 
+                        summaryFunction = mnLogLoss
+                        )
+```
+
+Model 1: Includes predictors: HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth + BMI
+
+```{r}
+# Fit Model 1: 
+set.seed(123)
+logRegFit_1 <- train(Diabetes_binary ~  HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth + BMI ,
+                     data = train, 
+                     method = "glm", 
+                     family = "binomial",
+                     metric = "logLoss", 
+                     trControl = control)
+logRegFit_1
+```
+
+This Logistic Regression Model 1 has a logLoss of 0.3383.
+
+Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth, possibly important based on data analysis.
+
+```{r}
+# Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth
+set.seed(123)
+logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth, 
+                     data = train, 
+                     method = "glm", 
+                     family = "binomial",
+                     metric = "logLoss", 
+                     preProcess = c("center","scale"),
+                     trControl = control)
+logRegFit_2
+```
+The logLoss of this model 2 is 0.32935.
+
+Model 3: LASSO Logistic Regression
+
+```{r}
+# Define a tune grid for lambda values (regularization strength)
+tune_grid <- expand.grid(alpha = 1,  # Lasso regression
+                         lambda = seq(0, 1, by = 0.1))
+
+# Fit logistic regression with Lasso regularization
+set.seed(123)
+logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth,
+                     data = train, 
+                     method = "glmnet", 
+                     family = "binomial",
+                     metric = "logLoss", 
+                     preProcess = c("center","scale"),
+                     trControl = control,
+                     tuneGrid = tune_grid)
+
+logRegLasso
+```
+
+Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.32937.
+
+From the above three models, I'd choose the model 2 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth as the best of these three logistic regression models.
+
+#### Classification Tree
+
+A classification tree, also known as a decision tree, is a predictive modeling method used for classification tasks. It splits up the data into distinct regions based on certain criteria, This splitting process is applied recursively to each subset, creating new nodes, until certain stopping conditions is met. The goal is to make the subsets as homogeneous as possible concerning the target variable. Trees can capture non-linear relationships between features and also can handle both numerical and categorical data.
+
+Now, let's fit a classification tree using rpart: tuning parameter is cp, use values 0, 0.001, 0.002...
+
+```{r, warning=FALSE, message=FALSE}
+set.seed(123)
+cl_tree_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth,
+                 data=train,
+                 method="rpart",
+                 trControl=control,
+                 preProcess=c("center","scale"),
+                 tuneGrid=data.frame(cp=seq(0,0.1,0.001)))
+cl_tree_fit
+```
+
+We will select the Classification Tree with cp=0, which logLoss value is 0.3382.
+
+#### Random Forest
+
+Random Forest is an ensemble learning method that create multiple trees from bootstrap samples and use a random subset of predictors for each bootstrap sample fit and average the results. It Combines the strengths of multiple trees to reduce the variance, improve performance and accuracy compared to the basic individual tree.
+
+```{r, warning=FALSE, message=FALSE}
+# Set up cross-validation
+control_rf <- trainControl(method = "cv", 
+                        number = 3, 
+                        classProbs = TRUE, 
+                        summaryFunction = mnLogLoss
+                        )
+
+# Fit Random Forest
+
+set.seed(123)
+rf_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth,
+                 data=train,
+                 method="rf",
+                 trControl=control_rf,
+                 #preProcess=c("center","scale"),
+                 tuneGrid=data.frame(mtry=1:5),
+                 ntree=100)
+rf_fit
+
+```
+

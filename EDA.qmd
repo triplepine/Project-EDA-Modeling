@@ -5,9 +5,12 @@ editor: visual
 ---
 
 Setups
+
 ```{r setup, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(corrplot)
+library(caret)
+library(Metrics)
 ```
 
 ## Introduction
@@ -22,12 +25,13 @@ Diabetes_binary, indicating the presence or absence of diabetes. 1 for individua
 
 Predictor Variables:
 
-
 Read in the dataset
+
 ```{r}
 diabetes <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 
 ```
+
 Notice that all the variables are numeric, but most of them (except BMI, MentHlth, PhysHlth, Age) are actually factors with different levels. We need to convert them to factors.
 
 ```{r}
@@ -35,11 +39,26 @@ Notice that all the variables are numeric, but most of them (except BMI, MentHlt
 numeric_vars <- c("BMI", "MentHlth", "PhysHlth", "Age")
 
 # Convert all other variables to factors
-diabetes <- diabetes |>
+diabetes <- diabetes %>%
   mutate(across(-all_of(numeric_vars), as.factor))
+
+# Ensure the levels of categorical predictors are valid R variable names
+for (col in names(diabetes)) {
+  if (is.factor(diabetes[[col]])) {
+    levels(diabetes[[col]]) <- make.names(levels(diabetes[[col]]))
+  }
+}
+
+# change the factor level to No, Yes for response Diabetes_binary
+diabetes <- diabetes %>%
+  mutate(Diabetes_binary = ifelse(Diabetes_binary == "X0", "No", "Yes")) %>%
+  mutate(Diabetes_binary = as.factor(Diabetes_binary))
 
 # Verify the conversions
 str(diabetes)
+
+# Save the processed data to a file
+saveRDS(diabetes, "processed_diabetes.rds")
 ```
 
 Check on missing values in the dataset
@@ -50,12 +69,15 @@ sum(is.na(diabetes))
 
 Data set does not contain any missing values.
 
-### Summaries
+### Summaries/Explanatory Data Analyzes
+
+#### Numeric variables
 
 ```{r}
 # Summary statistics for BMI, MentHlth and PhysHlth variables
 summary(diabetes %>% select(BMI, MentHlth,PhysHlth))
 ```
+
 From the output above, the min BMI is 12 but the Max is 98. The number of days in the past 30days has mental health not good (MentHlth) vary from 0 as min to 30 as max. Same as PhysHlth which stands for number of days of physical health not good in the past 30 days.
 
 Let's calculate and plot the correlation between the numerical variables.
@@ -68,10 +90,12 @@ corrplot(m,method='color',
          col=COL2('PiYG'))
 ```
 
-It seems PhysHlth and MentHlth are moderately linear correlated, and also PhysHlth has some positive linear correlation with BMI. 
+It seems PhysHlth and MentHlth are moderately linear correlated, and also PhysHlth has some positive linear correlation with BMI.
+
+#### Categorical variables
 
 Now, let's see Diabetes_binary in the context of BMI
-ggplot()
+
 ```{r}
 # Create a box plot
 ggplot(diabetes, aes(x = Diabetes_binary, y = BMI, fill=Sex)) +
@@ -79,9 +103,11 @@ ggplot(diabetes, aes(x = Diabetes_binary, y = BMI, fill=Sex)) +
   labs(x = "Diabetes_binary", y = "BMI", title = "Box Plot of BMI by Diabetes Status") +
   theme_minimal()
 ```
-As shown in the above boxplot, BMI does not vary between different Diabetes_binary.
+
+As shown in the above boxplot, BMI does not vary much between different Diabetes_binary.
 
 Let's see Diabetes_binary with highBP and highChol
+
 ```{r}
 # Create a bar plot for Diabetes_binary and HighBP
 ggplot(diabetes, aes(x = Diabetes_binary, fill = HighBP)) +
@@ -98,9 +124,49 @@ ggplot(diabetes, aes(x = Diabetes_binary, fill = HighChol)) +
 
 From the graphs plotted above, both with high HighChol and HighBP have a higher proportion of diabetes.
 
+Let's look at Diabetes_binary for different level of PhysActivity, HvyAlcoholConsump, GenHlth respectively.
 
+```{r}
+# Frequency table for Diabetes_binary and PhysActivity
+phys_activity_table <- table("PhysActivity"=diabetes$PhysActivity, "diabetes"=diabetes$Diabetes_binary)
+phys_activity_table
 
+# Frequency table for Diabetes_binary and HvyAlcoholConsump
+hvy_alcohol_table <- table("HvyAlcoholConsump"=diabetes$HvyAlcoholConsump, "diabetes"=diabetes$Diabetes_binary)
+hvy_alcohol_table
 
+# Frequency table for Diabetes_binary and GenHlth
+gen_health_table <- table("GenHlth"=diabetes$GenHlth, "diabetes"=diabetes$Diabetes_binary)
+gen_health_table
+
+```
+
+The tables show that larger number of those who engage in physical activity do not have diabetes compared to those who do not engage in physical activity. This can indicate an inverse relationship between physical activity and the prevalence of diabetes.While heavy alcohol comsuption does not show relationship with diabetes.
+
+GenHlth has 5 levels , so for clear visualization, let's plot the proportion along with the frequency table for better visionliaztion.
+
+```{r}
+# Frequency table for Diabetes_binary and GenHlth
+gen_health_table <- table("GenHlth" = diabetes$GenHlth, "Diabetes_binary" = diabetes$Diabetes_binary)
+
+# Calculate proportions
+gen_health_prop <- prop.table(gen_health_table, 1)
+
+# Combine frequency and proportion tables
+gen_health_combined <- cbind(gen_health_table, round(gen_health_prop, 4))
+
+# Add meaningful column names
+colnames(gen_health_combined) <- c("No_Count", "Yes_Count", "No_Proportion", "Yes_Proportion")
+
+# Convert to data frame for better readability
+gen_health_combined_df <- as.data.frame(gen_health_combined)
+
+# Print the combined table
+cat("Frequency and Proportion Table for Diabetes_binary and GenHlth\n")
+print(gen_health_combined_df)
+```
+
+We see that the diabetes proportion significantly increases as the level of GenHlth increases.
 
 
 
