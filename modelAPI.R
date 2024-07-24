@@ -4,12 +4,13 @@
 library(readr)
 library(plumber)
 library(rpart)
+library(dplyr)
 
 # Read in the processed diabetes dataset
 diabetes <- readRDS("processed_diabetes.rds")
 
 # Load the best model
-load("cl_tree_fit.RData")
+load("rf_fit.RData")
 
 # Train the classification tree model using the entire dataset
 final_model <- rpart(Diabetes_binary~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth + MentHlth, data = diabetes, control = rpart.control(cp = 0))

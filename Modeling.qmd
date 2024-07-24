@@ -60,7 +60,7 @@ Model 1: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivi
 ```{r}
 # Fit Model 1: 
 set.seed(123)
-logRegFit_1 <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth+ MentHlth ,
+logRegFit_1 <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity + MentHlth + GenHlth,
                      data = train, 
                      method = "glm", 
                      family = "binomial",
@@ -71,12 +71,12 @@ logRegFit_1
 
 This Logistic Regression Model 1 has a logLoss of 0.33622.
 
-Model 2: Includes predictors:  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth.
+Model 2: Includes predictors:  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ MentHlth.
 
 ```{r}
 # Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth
 set.seed(123)
-logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth +MentHlth, 
+logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ GenHlth+ MentHlth, 
                      data = train, 
                      method = "glm", 
                      family = "binomial",
@@ -96,7 +96,7 @@ tune_grid <- expand.grid(alpha = 1,  # Lasso regression
 
 # Fit logistic regression with Lasso regularization
 set.seed(123)
-logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth + MentHlth,
+logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ MentHlth,
                      data = train, 
                      method = "glmnet", 
                      family = "binomial",
@@ -165,39 +165,68 @@ Now, we have chosen the best model of each type. We will compare the three model
 
 
 Logistic Regression Predictions and logloss calculation
-```{r}
-fitted_log <- predict(logRegFit_1, newdata = select(test,- c(Diabetes_binary, Diabetes_num)), type = "prob")[ ,2]
 
-log_loss_logRegFit_1 <- logLoss(test$Diabetes_num, fitted_log)
-log_loss_logRegFit_1
+```{r}
+# Ensure all required predictors are included in the newdata
+required_predictors <- c("HighBP", "HighChol", "HeartDiseaseorAttack", "PhysActivity", "GenHlth", "MentHlth")
+
+# Predict on the test set using all required predictors
+fitted_log <- predict(logRegFit_1, newdata = test %>% select(all_of(required_predictors)), type = "prob")
+
+# Convert the predicted probabilities to numeric format for mnLogLoss
+pred_data <- data.frame(obs = test$Diabetes_binary, `No` = fitted_log[, 1], `Yes` = fitted_log[, 2])
+
+# Check the structure of pred_data to ensure it matches expected format
+str(pred_data)
+
+# Calculate log loss using the mnLogLoss function from caret
+log_loss_logRegFit_1 <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
+print(log_loss_logRegFit_1)
 ```
 
 Classical Tree Predictions and logloss calculation
 ```{r}
-fitted_cl <- predict(cl_tree_fit, newdata = select(test,- c(Diabetes_binary, Diabetes_num)), type = "prob")[, 2]
+# Ensure all required predictors are included in the newdata
+required_predictors <- c("HighBP", "HighChol", "HeartDiseaseorAttack", "PhysActivity", "GenHlth", "MentHlth")
 
-# Add smoothing to calibrated probabilities
-epsilon <- 1e-15
-fitted_cl <- pmin(pmax(fitted_cl, epsilon), 1 - epsilon)
-log_loss_class <- logLoss(test$Diabetes_num, fitted_cl)
-log_loss_class
+# Predict on the test set using all required predictors
+fitted_cl_tree <- predict(cl_tree_fit, newdata = test %>% select(all_of(required_predictors)), type = "prob")
+
+# Convert the predicted probabilities to numeric format for mnLogLoss
+pred_data <- data.frame(obs = test$Diabetes_binary, `No` = fitted_cl_tree[, 1], `Yes` = fitted_cl_tree[, 2])
+
+# Check the structure of pred_data to ensure it matches expected format
+str(pred_data)
+
+# Calculate log loss using the mnLogLoss function from caret
+log_loss_cl_tree <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
+print(log_loss_cl_tree)
 ```
+
 
 Random Forest Model Predictions and log loss calculation
 
 ```{r}
-fitted_rf <- predict(rf_fit, newdata = select(test, -c(Diabetes_binary, Diabetes_num)), type = "prob")[, 2]
-epsilon <- 1e-15
-fitted_rf <- pmin(pmax(fitted_rf, epsilon), 1 - epsilon)
-log_loss_rf <- logLoss(test$Diabetes_num, fitted_rf)
-log_loss_rf
+# Predict on the test set using all required predictors
+fitted_rf <- predict(rf_fit, newdata = test %>% select(all_of(required_predictors)), type = "prob")
+
+# Convert the predicted probabilities to numeric format for mnLogLoss
+pred_data <- data.frame(obs = test$Diabetes_binary, `No` = fitted_rf[, 1], `Yes` = fitted_rf[, 2])
+
+# Check the structure of pred_data to ensure it matches expected format
+str(pred_data)
+
+# Calculate log loss using the mnLogLoss function from caret
+log_loss_rf <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
+print(log_loss_rf)
 ```
 
 
-Based on the logLoss metric comparison, we will select the classfication tree as the best model.
+Based on the logLoss metric comparison, we will select the logistic regression model with logLoss = 0.3306 as the best model.
+
 
 ```{r}
 # Save the best model to a file
-saveRDS(cl_tree_fit, "cl_tree_fit.rds")
+saveRDS(logRegFit_1, "logRegFit_1.rds")
 ```
 

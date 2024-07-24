@@ -13,7 +13,7 @@ WORKDIR /app
 # copy everything from the current directory into the container
 COPY modelapi.R modelapi.R
 COPY processed_diabetes.rds processed_diabetes.rds
-COPY cl_tree_fit.rds cl_tree_fit.rds
+COPY logRegFit_1.rds logRegFit_1.rds
 
 # open port to traffic
 EXPOSE 8000
