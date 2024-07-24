@@ -13,46 +13,90 @@ library(caret)
 library(Metrics)
 ```
 
-## Introduction
+### Introduction
 
-### About the Dataset
+#### About the Dataset
 
 This dataset contains health indicators related to diabetes status.
 
-Response variable:
+***Response variable:***
 
-Diabetes_binary, indicating the presence or absence of diabetes. 1 for individuals diagnosed with diabetes and 0 for individuals without diabetes.
+**Diabetes_binary**, indicating the presence or absence of diabetes. "Yes" for individuals diagnosed with diabetes and "No" for individuals without diabetes.
 
-Predictor Variables:
+***Predictor Variables (of interest):***
+
+1.  **HighBP (High Blood Pressure)**:
+
+    Categorical (Factor): 0 = no high BP 1 = high BP
+
+2.  **HighChol (High Cholesterol)**:
+
+    Categorical (Factor): 0 = no high cholesterol 1 = high cholesterol
+
+3.  **BMI (Body Mass Index)**:
+
+    Continuous (Numeric): Body Mass Index
+
+4.  **HeartDiseaseorAttack (Heart Disease)**:
+
+    Categorical (Factor): coronary heart disease (CHD) or myocardial infarction (MI) 0 = no 1 = yes
+
+5.  **PhysActivity (Physical Activity)**:
+
+    Categorical (Factor) : physical activity in past 30 days - not including job 0 = no 1 = yes
+
+6.  **HvyAlcoholConsump (Heavy Alcohol Consumption)**:
+
+    Categorical (Factor): (adult men >=14 drinks per week and adult women>=7 drinks per week) 0 = no 1 = yes
+
+7.  **GenHlth (General Health)**:
+
+    Categorical (Factor): Would you say that in general your health is: scale 1-5 1 = excellent 2 = very good 3 = good 4 = fair 5 = poor
+
+8.  **MentHlth (Mental Health)**:
+
+    Continuous (Numeric): days of poor mental health scale 1-30 days
+
+9.  **PhysHlth (Physical Health)**:
+
+    Continuous (Numeric): physical illness or injury days in past 30 days scale 1-30
+    
+
+#### Goal
+
+The goal is to comprehensively understand my data set, determine which predictors might be the most significant contributors to diabetes risk via EDA, and develop a predictive model that can accurately identify individuals at risk of developing diabetes based on their health and lifestyle factors.
+
+
+### Exploratory Data Analysis
 
 Read in the dataset
 
 ```{r}
 diabetes <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
-
 ```
 
-Notice that all the variables are numeric, but most of them (except BMI, MentHlth, PhysHlth, Age) are actually factors with different levels. We need to convert them to factors.
+Notice that all the original variables are numeric, but most of them (except BMI, MentHlth, PhysHlth) are actually factors with different levels. We need to convert them to factors.
 
 ```{r}
 # List of variables to remain numeric
-numeric_vars <- c("BMI", "MentHlth", "PhysHlth", "Age")
+numeric_vars <- c("BMI", "MentHlth", "PhysHlth")
 
 # Convert all other variables to factors
 diabetes <- diabetes %>%
   mutate(across(-all_of(numeric_vars), as.factor))
 
-# Ensure the levels of categorical predictors are valid R variable names
-for (col in names(diabetes)) {
-  if (is.factor(diabetes[[col]])) {
-    levels(diabetes[[col]]) <- make.names(levels(diabetes[[col]]))
-  }
-}
-
-# change the factor level to No, Yes for response Diabetes_binary
+# Convert variables of interest to factors with meaningful level names
 diabetes <- diabetes %>%
-  mutate(Diabetes_binary = ifelse(Diabetes_binary == "X0", "No", "Yes")) %>%
-  mutate(Diabetes_binary = as.factor(Diabetes_binary))
+  mutate(
+    HighBP = factor(HighBP, levels = c(0, 1), labels = c("No", "Yes")),
+    HighChol = factor(HighChol, levels = c(0, 1), labels = c("No", "Yes")),
+    HeartDiseaseorAttack = factor(HeartDiseaseorAttack, levels = c(0, 1), labels = c("No", "Yes")),
+    PhysActivity = factor(PhysActivity, levels = c(0, 1), labels = c("No", "Yes")),
+    HvyAlcoholConsump = factor(HvyAlcoholConsump, levels = c(0, 1), labels = c("No", "Yes")),
+    GenHlth = factor(GenHlth, levels = c(1, 2, 3, 4, 5), labels = c("Excellent", "Very Good", "Good", "Fair", "Poor")),
+    Diabetes_binary = factor(Diabetes_binary, levels = c(0,1) , labels= c("No", "Yes")),
+    Diabetes_num = as.numeric(Diabetes_binary) # for logLoss calculation
+  )
 
 # Verify the conversions
 str(diabetes)
@@ -61,7 +105,7 @@ str(diabetes)
 saveRDS(diabetes, "processed_diabetes.rds")
 ```
 
-Check on missing values in the dataset
+Check on missing values in the data set
 
 ```{r}
 sum(is.na(diabetes))
@@ -69,16 +113,16 @@ sum(is.na(diabetes))
 
 Data set does not contain any missing values.
 
-### Summaries/Explanatory Data Analyzes
+#### Summaries/Explanatory Data Analyzes
 
-#### Numeric variables
+##### Numeric variables
 
 ```{r}
 # Summary statistics for BMI, MentHlth and PhysHlth variables
 summary(diabetes %>% select(BMI, MentHlth,PhysHlth))
 ```
 
-From the output above, the min BMI is 12 but the Max is 98. The number of days in the past 30days has mental health not good (MentHlth) vary from 0 as min to 30 as max. Same as PhysHlth which stands for number of days of physical health not good in the past 30 days.
+From the output above, the min BMI is 12 but the Max is 98. The number of days in the past 30days has mental health not good (MentHlth) vary from 0 as min to 30 as max. Same as PhysHlth which stands for number of days of physical health not good in the past 30 days. 
 
 Let's calculate and plot the correlation between the numerical variables.
 
@@ -92,21 +136,43 @@ corrplot(m,method='color',
 
 It seems PhysHlth and MentHlth are moderately linear correlated, and also PhysHlth has some positive linear correlation with BMI.
 
-#### Categorical variables
+```{r}
+# Create a density plot to explore the relationship between numeric MentHlth and Diabetes_binary
+ggplot(diabetes, aes(x = MentHlth, fill = Diabetes_binary)) +
+  geom_density(alpha = 0.6) +
+  labs(x = "Mental Health Number in 30 days", y = "Density", title = "Density Plot of Mental Health by Diabetes Status") +
+  theme_minimal() +
+  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+```
+It shows that people diagonozed with diabetes have more mental health issues in 30 days.
+
+
+```{r}
+# Create a density plot to explore the relationship between numeric PhysHlth and Diabetes_binary
+ggplot(diabetes, aes(x = PhysHlth, fill = Diabetes_binary)) +
+  geom_density(alpha = 0.6) +
+  labs(x = "Physical Health Number in 30 days", y = "Density", title = "Density Plot of Mental Health by Diabetes Status") +
+  theme_minimal() +
+  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+
+```
+There is no evidence that people diagonozed diabetes have more physical health issues within 30 days.
 
 Now, let's see Diabetes_binary in the context of BMI
 
 ```{r}
-# Create a box plot
-ggplot(diabetes, aes(x = Diabetes_binary, y = BMI, fill=Sex)) +
-  geom_boxplot() +
-  labs(x = "Diabetes_binary", y = "BMI", title = "Box Plot of BMI by Diabetes Status") +
+# Create a box plot to explore the relationship between Diabetes_binary and BMI
+ggplot(diabetes, aes(x = Diabetes_binary, y = BMI)) +
+  geom_boxplot(fill = c("blue", "red")) +
+  labs(x = "Diabetes Status", y = "BMI", title = "Box Plot of BMI by Diabetes Status") +
   theme_minimal()
 ```
 
-As shown in the above boxplot, BMI does not vary much between different Diabetes_binary.
+As shown in the above boxplot, BMI does not vary much between different Diabetes_binary level.
 
-Let's see Diabetes_binary with highBP and highChol
+##### Categorical variables
+
+Let's see Diabetes_binary with highBP and highChol.
 
 ```{r}
 # Create a bar plot for Diabetes_binary and HighBP
@@ -124,51 +190,74 @@ ggplot(diabetes, aes(x = Diabetes_binary, fill = HighChol)) +
 
 From the graphs plotted above, both with high HighChol and HighBP have a higher proportion of diabetes.
 
-Let's look at Diabetes_binary for different level of PhysActivity, HvyAlcoholConsump, GenHlth respectively.
+Let's check the relationship between HeartDiseaseorAttack and Diabetes_binary
+```{r}
+# Create a bar plot to explore the relationship between HeartDiseaseorAttack and Diabetes_binary (Counts)
+count_plot <- ggplot(diabetes, aes(x = HeartDiseaseorAttack, fill = Diabetes_binary)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Heart Disease or Heart Attack", y = "Count", title = "Count of Heart Disease or Heart Attack by Diabetes Status", fill = "Diabetes Status") +
+  theme_minimal() +
+  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+count_plot
+
+# Create a bar plot to explore the relationship between HeartDiseaseorAttack and Diabetes_binary (Proportions)
+proportion_plot <- ggplot(diabetes, aes(x = HeartDiseaseorAttack, fill = Diabetes_binary)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Heart Disease or Heart Attack", y = "Proportion", title = "Proportion of Heart Disease or Heart Attack by Diabetes Status", fill = "Diabetes Status") +
+  theme_minimal() +
+  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+
+proportion_plot
+```
+
+It looks like the proportion of HeartDiseaseorAttack in person with diabetes are much higher than that without heart disease or heart attack.
+
+Let's look at Diabetes_binary for different level of PhysActivity, HvyAlcoholConsump, GenHlth and Fruits respectively.
 
 ```{r}
 # Frequency table for Diabetes_binary and PhysActivity
 phys_activity_table <- table("PhysActivity"=diabetes$PhysActivity, "diabetes"=diabetes$Diabetes_binary)
 phys_activity_table
+```
 
+The tables show that larger number of those who engage in physical activity do not have diabetes compared to those who do not engage in physical activity. This can indicate an inverse relationship between physical activity and the prevalence of diabetes.
+
+```{r}
 # Frequency table for Diabetes_binary and HvyAlcoholConsump
 hvy_alcohol_table <- table("HvyAlcoholConsump"=diabetes$HvyAlcoholConsump, "diabetes"=diabetes$Diabetes_binary)
 hvy_alcohol_table
-
-# Frequency table for Diabetes_binary and GenHlth
-gen_health_table <- table("GenHlth"=diabetes$GenHlth, "diabetes"=diabetes$Diabetes_binary)
-gen_health_table
-
 ```
+The heavy alcohol consumption does not show relationship with diabetes. 
 
-The tables show that larger number of those who engage in physical activity do not have diabetes compared to those who do not engage in physical activity. This can indicate an inverse relationship between physical activity and the prevalence of diabetes.While heavy alcohol comsuption does not show relationship with diabetes.
-
-GenHlth has 5 levels , so for clear visualization, let's plot the proportion along with the frequency table for better visionliaztion.
 
 ```{r}
-# Frequency table for Diabetes_binary and GenHlth
-gen_health_table <- table("GenHlth" = diabetes$GenHlth, "Diabetes_binary" = diabetes$Diabetes_binary)
+# Frequency table for Diabetes_binary and have Fruits or not once a day
+ft_table <- table("Fruits"=diabetes$Fruits, "diabetes"=diabetes$Diabetes_binary)
+ft_table
+```
+It doesn't seem the fruit affect the Diabetes_binary significantly.
 
-# Calculate proportions
-gen_health_prop <- prop.table(gen_health_table, 1)
-
-# Combine frequency and proportion tables
-gen_health_combined <- cbind(gen_health_table, round(gen_health_prop, 4))
-
-# Add meaningful column names
-colnames(gen_health_combined) <- c("No_Count", "Yes_Count", "No_Proportion", "Yes_Proportion")
-
-# Convert to data frame for better readability
-gen_health_combined_df <- as.data.frame(gen_health_combined)
-
-# Print the combined table
-cat("Frequency and Proportion Table for Diabetes_binary and GenHlth\n")
-print(gen_health_combined_df)
+GenHlth has 5 levels , so for clear visualization, let's plot the proportion along with the frequency for better visionlization.
+```{r}
+# Create the ggplot for proportions and frequencies
+ggplot(data = diabetes, aes(x = GenHlth, fill = Diabetes_binary)) +
+  geom_bar(position = "fill", stat = "count") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(stat = "count", aes(label = ..count..), position = position_fill(vjust = 0.5)) +
+  labs(title = "Proportion of Diabetes by General Health",
+       x = "General Health",
+       y = "Proportion",
+       fill = "Diabetes") +
+  scale_fill_manual(values = c("No" = "pink", "Yes" = "lightblue")) +
+  theme_minimal() +
+  theme(legend.position = "top")
 ```
 
-We see that the diabetes proportion significantly increases as the level of GenHlth increases.
+We see that the diabetes proportion significantly increases as the level of GenHlth increases (health condition gets poorer).
+
+Overall, from the EDA we will focus on the predictors HighBP, HighChol, HeartDiseaseorAttack, PhysActivity, MentHlth, GenHlth.
 
 
 
-
-## [Click here for the Modeling Page](Modeling.html)
+### [Click here for the Modeling Page](Modeling.html)

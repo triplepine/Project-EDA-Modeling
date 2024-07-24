@@ -3,68 +3,71 @@
 # Load necessary libraries
 library(readr)
 library(plumber)
-library(randomForest)
+library(rpart)
 
-# read in the diabetes data set
-diabetes <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+# Read in the processed diabetes dataset
+diabetes <- readRDS("processed_diabetes.rds")
 
-# fit my best model
+# Load the best model
+load("cl_tree_fit.RData")
 
-# Set up cross-validation control with 3-fold CV
-control <- trainControl(method = "cv", 
-                        number = 3, 
-                        classProbs = TRUE, 
-                        summaryFunction = mnLogLoss)
+# Train the classification tree model using the entire dataset
+final_model <- rpart(Diabetes_binary~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth + MentHlth, data = diabetes, control = rpart.control(cp = 0))
 
-# Set seed for reproducibility
-set.seed(123)
+# Define the selected predictors
+selected_predictors <- c("HighBP", "HighChol", "HeartDiseaseorAttack", "PhysActivity", "GenHlth", "MentHlth")
 
-# Fit Random Forest model
-rf_fit <- train(Diabetes_binary ~ HighBP + HighChol + HeartDiseaseorAttack + PhysActivity + GenHlth,
-                data = diabetes,
-                method = "rf",
-                trControl = control,
-                preProcess = c("center", "scale"),
-                tuneGrid = data.frame(mtry = 1:5),
-                ntree = 100)
+# Make predictions on the entire dataset using the cl_tree_fit model
+final_predictions <- predict(cl_tree_fit, newdata = select(diabetes, all_of(selected_predictors)), type = "prob")
 
-# Calculate mean values for default inputs
-default_values <- colMeans(data[, c("PhysActivity", "GenHlth")])
+# Calculate default values
+default_values <- diabetes %>% 
+  summarise(
+    HighBP = names(which.max(table(HighBP))),
+    HighChol = names(which.max(table(HighChol))),
+    HeartDiseaseorAttack = names(which.max(table(HeartDiseaseorAttack))),
+    PhysActivity = names(which.max(table(HeartDiseaseorAttack))),
+    GenHlth = names(which.max(table(GenHlth))),
+    MentHlth = mean(MentHlth, na.rm = TRUE)
+  )
 
-#* @apiTitle Random Forest Prediction API
+#* @apiTitle Diabetes Prediction API
 
-#* Predict endpoint
-#* @param HighBP The value of HighBP (default: 0)
-#* @param HighChol The value of HighChol (default: 0)
-#* @param HeartDiseaseorAttack The value of HeartDiseaseorAttack (default: 0)
-#* @param PhysActivity The value of PhysActivity (default: mean)
-#* @param GenHlth The value of GenHlth (default: mean)
+#* Make a prediction
+#* @param HighBP Default: most prevalent class
+#* @param HighChol Default: most prevalent class
+#* @param HeartDiseaseorAttack Default: most prevalent class
+#* @param PhysActivity Default: most prevalent class
+#* @param GenHlth Default: most prevalent class
 #* @post /pred
-function(HighBP = 0,
-         HighChol = 0,
-         HeartDiseaseorAttack = 0,
-         PhysActivity = default_values["PhysActivity"],
-         GenHlth = default_values["GenHlth"]) {
+function(HighBP = default_values$HighBP,
+         HighChol = default_values$HighChol,
+         HeartDiseaseorAttack = default_values$HeartDiseaseorAttack,
+         PhysActivity = default_values$PhysActivity,
+         GenHlth = default_values$GenHlth,
+         MentHlth = default_values$MentHlth) {
   
   # Create a new data frame for prediction
-  new_data <- data.frame(HighBP = as.factor(as.numeric(HighBP)),
-                         HighChol = as.factor(as.numeric(HighChol)),
-                         HeartDiseaseorAttack = as.factor(as.numeric(HeartDiseaseorAttack)),
-                         PhysActivity = as.numeric(PhysActivity),
-                         GenHlth = as.numeric(GenHlth))
+  pred_data <- data.frame(HighBP = HighBP,
+                         HighChol = HighChol,
+                         HeartDiseaseorAttack = HeartDiseaseorAttack,
+                         PhysActivity = PhysActivity,
+                         GenHlth = GenHlth,
+                         MentHlth = MentHlth)
   
-  # Predict using the best model
-  prediction <- predict(rf_fit, new_data, type = "prob")
+  # Predict using the best model (cl_fit)
+  prediction <- predict(cl_fit, pred_data, type = "prob")
   
   return(list(prediction = prediction))
 }
+
 
 #* Info endpoint
 #* @get /info
 function() {
   list(
     name = "Jie Chen",
-    url = "https://your-github-pages-site.github.io"
+    url = "https://triplepine.github.io/Project-EDA-Modeling/"
   )
 }
 

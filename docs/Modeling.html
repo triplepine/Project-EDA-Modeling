@@ -137,8 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ROSE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="modeling" class="level3">
 <h3 class="anchored" data-anchor-id="modeling">Modeling</h3>
@@ -175,11 +174,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">summaryFunction =</span> mnLogLoss</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Model 1: Includes predictors: HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth + BMI</p>
+<p>Model 1: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth+ MentHlth</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 1: </span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>logRegFit_1 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span>  HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity <span class="sc">+</span>GenHlth <span class="sc">+</span> BMI ,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>logRegFit_1 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity <span class="sc">+</span>GenHlth<span class="sc">+</span> MentHlth ,</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> train, </span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">method =</span> <span class="st">"glm"</span>, </span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
@@ -190,7 +189,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Generalized Linear Model 
 
 177577 samples
-     5 predictor
+     6 predictor
      2 classes: 'No', 'Yes' 
 
 No pre-processing
@@ -199,15 +198,15 @@ Summary of sample sizes: 142062, 142061, 142061, 142062, 142062
 Resampling results:
 
   logLoss  
-  0.3383185</code></pre>
+  0.3362196</code></pre>
 </div>
 </div>
-<p>This Logistic Regression Model 1 has a logLoss of 0.3383.</p>
-<p>Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth, possibly important based on data analysis.</p>
+<p>This Logistic Regression Model 1 has a logLoss of 0.33622.</p>
+<p>Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>logRegFit_2 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span>  HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> BMI <span class="sc">+</span> GenHlth, </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>logRegFit_2 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span>  HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity<span class="sc">+</span> GenHlth <span class="sc">+</span>MentHlth, </span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> train, </span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">method =</span> <span class="st">"glm"</span>, </span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
@@ -219,19 +218,19 @@ Resampling results:
 <pre><code>Generalized Linear Model 
 
 177577 samples
-     5 predictor
+     6 predictor
      2 classes: 'No', 'Yes' 
 
-Pre-processing: centered (8), scaled (8) 
+Pre-processing: centered (9), scaled (9) 
 Resampling: Cross-Validated (5 fold) 
 Summary of sample sizes: 142062, 142061, 142061, 142062, 142062 
 Resampling results:
 
   logLoss  
-  0.3293504</code></pre>
+  0.3362196</code></pre>
 </div>
 </div>
-<p>The logLoss of this model 2 is 0.32935.</p>
+<p>The logLoss of this model 2 is 0.3364.</p>
 <p>Model 3: LASSO Logistic Regression</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a tune grid for lambda values (regularization strength)</span></span>
@@ -240,7 +239,7 @@ Resampling results:
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit logistic regression with Lasso regularization</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>logRegLasso <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> BMI <span class="sc">+</span> GenHlth,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>logRegLasso <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity<span class="sc">+</span> GenHlth <span class="sc">+</span> MentHlth,</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> train, </span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">method =</span> <span class="st">"glmnet"</span>, </span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
@@ -254,16 +253,16 @@ Resampling results:
 <pre><code>glmnet 
 
 177577 samples
-     5 predictor
+     6 predictor
      2 classes: 'No', 'Yes' 
 
-Pre-processing: centered (8), scaled (8) 
+Pre-processing: centered (9), scaled (9) 
 Resampling: Cross-Validated (5 fold) 
 Summary of sample sizes: 142062, 142061, 142061, 142062, 142062 
 Resampling results across tuning parameters:
 
   lambda  logLoss  
-  0.0     0.3293697
+  0.0     0.3362391
   0.1     0.4037576
   0.2     0.4037576
   0.3     0.4037576
@@ -280,8 +279,8 @@ logLoss was used to select the optimal model using the smallest value.
 The final values used for the model were alpha = 1 and lambda = 0.</code></pre>
 </div>
 </div>
-<p>Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.32937.</p>
-<p>From the above three models, I’d choose the model 2 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth as the best of these three logistic regression models.</p>
+<p>Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.33624.</p>
+<p>From the above three models, I’d choose the model 1 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth, MentHlth as the best of these three logistic regression models.</p>
 </section>
 <section id="classification-tree" class="level4">
 <h4 class="anchored" data-anchor-id="classification-tree">Classification Tree</h4>
@@ -289,7 +288,7 @@ The final values used for the model were alpha = 1 and lambda = 0.</code></pre>
 <p>Now, let’s fit a classification tree using rpart: tuning parameter is cp, use values 0, 0.001, 0.002…</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cl_tree_fit <span class="ot">&lt;-</span><span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> BMI <span class="sc">+</span> GenHlth,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cl_tree_fit <span class="ot">&lt;-</span><span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity<span class="sc">+</span> GenHlth <span class="sc">+</span> MentHlth,</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data=</span>train,</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method=</span><span class="st">"rpart"</span>,</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trControl=</span>control,</span>
@@ -300,19 +299,19 @@ The final values used for the model were alpha = 1 and lambda = 0.</code></pre>
 <pre><code>CART 
 
 177577 samples
-     5 predictor
+     6 predictor
      2 classes: 'No', 'Yes' 
 
-Pre-processing: centered (8), scaled (8) 
+Pre-processing: centered (9), scaled (9) 
 Resampling: Cross-Validated (5 fold) 
 Summary of sample sizes: 142062, 142061, 142061, 142062, 142062 
 Resampling results across tuning parameters:
 
   cp     logLoss  
-  0.000  0.3382465
-  0.001  0.3577225
-  0.002  0.3577942
-  0.003  0.3577827
+  0.000  0.3418082
+  0.001  0.3675003
+  0.002  0.4037576
+  0.003  0.4037576
   0.004  0.4037576
   0.005  0.4037576
   0.006  0.4037576
@@ -415,7 +414,7 @@ logLoss was used to select the optimal model using the smallest value.
 The final value used for the model was cp = 0.</code></pre>
 </div>
 </div>
-<p>We will select the Classification Tree with cp=0, which logLoss value is 0.3382.</p>
+<p>We will select the Classification Tree with cp=0, the corresponding logLoss value is 0.3418.</p>
 </section>
 <section id="random-forest" class="level4">
 <h4 class="anchored" data-anchor-id="random-forest">Random Forest</h4>
@@ -431,19 +430,19 @@ The final value used for the model was cp = 0.</code></pre>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Random Forest</span></span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span><span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity<span class="sc">+</span>GenHlth,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span><span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> PhysActivity<span class="sc">+</span>GenHlth <span class="sc">+</span> MentHlth,</span>
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data=</span>train,</span>
 <span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method=</span><span class="st">"rf"</span>,</span>
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trControl=</span>control_rf,</span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#preProcess=c("center","scale"),</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tuneGrid=</span><span class="fu">data.frame</span>(<span class="at">mtry=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>),</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tuneGrid=</span><span class="fu">data.frame</span>(<span class="at">mtry=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>),</span>
 <span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ntree=</span><span class="dv">100</span>)</span>
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>rf_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Random Forest 
 
 177577 samples
-     5 predictor
+     6 predictor
      2 classes: 'No', 'Yes' 
 
 No pre-processing
@@ -452,15 +451,60 @@ Summary of sample sizes: 118384, 118386, 118384
 Resampling results across tuning parameters:
 
   mtry  logLoss 
-  1     4.453257
-  2     4.308882
-  3     4.310903
-  4     4.344799
-  5     4.338836
+  1     4.437618
+  2     4.147667
+  3     4.094074
+  4     4.048506
+  5     4.004992
+  6     3.927258
 
 logLoss was used to select the optimal model using the smallest value.
-The final value used for the model was mtry = 2.</code></pre>
+The final value used for the model was mtry = 6.</code></pre>
 </div>
+</div>
+<p>So we will pick the random forest model with mtry = 6 (note that the corresponding logLoss is 3.927, which seems unreasonable, but for comparison purposes, we will still select this one as it’s the best among this type).</p>
+</section>
+<section id="final-model-selection" class="level4">
+<h4 class="anchored" data-anchor-id="final-model-selection">Final Model Selection</h4>
+<p>Now, we have chosen the best model of each type. We will compare the three models on the test set and find the overall best model.</p>
+<p>Logistic Regression Predictions and logloss calculation</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fitted_log <span class="ot">&lt;-</span> <span class="fu">predict</span>(logRegFit_1, <span class="at">newdata =</span> <span class="fu">select</span>(test,<span class="sc">-</span> <span class="fu">c</span>(Diabetes_binary, Diabetes_num)), <span class="at">type =</span> <span class="st">"prob"</span>)[ ,<span class="dv">2</span>]</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>log_loss_logRegFit_1 <span class="ot">&lt;-</span> <span class="fu">logLoss</span>(test<span class="sc">$</span>Diabetes_num, fitted_log)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>log_loss_logRegFit_1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.62002</code></pre>
+</div>
+</div>
+<p>Classical Tree Predictions and logloss calculation</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>fitted_cl <span class="ot">&lt;-</span> <span class="fu">predict</span>(cl_tree_fit, <span class="at">newdata =</span> <span class="fu">select</span>(test,<span class="sc">-</span> <span class="fu">c</span>(Diabetes_binary, Diabetes_num)), <span class="at">type =</span> <span class="st">"prob"</span>)[, <span class="dv">2</span>]</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Add smoothing to calibrated probabilities</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fl">1e-15</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>fitted_cl <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(fitted_cl, epsilon), <span class="dv">1</span> <span class="sc">-</span> epsilon)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>log_loss_class <span class="ot">&lt;-</span> <span class="fu">logLoss</span>(test<span class="sc">$</span>Diabetes_num, fitted_cl)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>log_loss_class</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.595981</code></pre>
+</div>
+</div>
+<p>Random Forest Model Predictions and log loss calculation</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fitted_rf <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_fit, <span class="at">newdata =</span> <span class="fu">select</span>(test, <span class="sc">-</span><span class="fu">c</span>(Diabetes_binary, Diabetes_num)), <span class="at">type =</span> <span class="st">"prob"</span>)[, <span class="dv">2</span>]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fl">1e-15</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>fitted_rf <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(fitted_rf, epsilon), <span class="dv">1</span> <span class="sc">-</span> epsilon)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>log_loss_rf <span class="ot">&lt;-</span> <span class="fu">logLoss</span>(test<span class="sc">$</span>Diabetes_num, fitted_rf)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>log_loss_rf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 36.42205</code></pre>
+</div>
+</div>
+<p>Based on the logLoss metric comparison, we will select the classfication tree as the best model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the best model to a file</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(cl_tree_fit, <span class="st">"cl_tree_fit.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

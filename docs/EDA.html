@@ -140,14 +140,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="introduction" class="level2">
-<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<section id="about-the-dataset" class="level3">
-<h3 class="anchored" data-anchor-id="about-the-dataset">About the Dataset</h3>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<section id="about-the-dataset" class="level4">
+<h4 class="anchored" data-anchor-id="about-the-dataset">About the Dataset</h4>
 <p>This dataset contains health indicators related to diabetes status.</p>
-<p>Response variable:</p>
-<p>Diabetes_binary, indicating the presence or absence of diabetes. 1 for individuals diagnosed with diabetes and 0 for individuals without diabetes.</p>
-<p>Predictor Variables:</p>
+<p><strong><em>Response variable:</em></strong></p>
+<p><strong>Diabetes_binary</strong>, indicating the presence or absence of diabetes. “Yes” for individuals diagnosed with diabetes and “No” for individuals without diabetes.</p>
+<p><strong><em>Predictor Variables (of interest):</em></strong></p>
+<ol type="1">
+<li><p><strong>HighBP (High Blood Pressure)</strong>:</p>
+<p>Categorical (Factor): 0 = no high BP 1 = high BP</p></li>
+<li><p><strong>HighChol (High Cholesterol)</strong>:</p>
+<p>Categorical (Factor): 0 = no high cholesterol 1 = high cholesterol</p></li>
+<li><p><strong>BMI (Body Mass Index)</strong>:</p>
+<p>Continuous (Numeric): Body Mass Index</p></li>
+<li><p><strong>HeartDiseaseorAttack (Heart Disease)</strong>:</p>
+<p>Categorical (Factor): coronary heart disease (CHD) or myocardial infarction (MI) 0 = no 1 = yes</p></li>
+<li><p><strong>PhysActivity (Physical Activity)</strong>:</p>
+<p>Categorical (Factor) : physical activity in past 30 days - not including job 0 = no 1 = yes</p></li>
+<li><p><strong>HvyAlcoholConsump (Heavy Alcohol Consumption)</strong>:</p>
+<p>Categorical (Factor): (adult men &gt;=14 drinks per week and adult women&gt;=7 drinks per week) 0 = no 1 = yes</p></li>
+<li><p><strong>GenHlth (General Health)</strong>:</p>
+<p>Categorical (Factor): Would you say that in general your health is: scale 1-5 1 = excellent 2 = very good 3 = good 4 = fair 5 = poor</p></li>
+<li><p><strong>MentHlth (Mental Health)</strong>:</p>
+<p>Continuous (Numeric): days of poor mental health scale 1-30 days</p></li>
+<li><p><strong>PhysHlth (Physical Health)</strong>:</p>
+<p>Continuous (Numeric): physical illness or injury days in past 30 days scale 1-30</p></li>
+</ol>
+</section>
+<section id="goal" class="level4">
+<h4 class="anchored" data-anchor-id="goal">Goal</h4>
+<p>The goal is to comprehensively understand my data set, determine which predictors might be the most significant contributors to diabetes risk via EDA, and develop a predictive model that can accurately identify individuals at risk of developing diabetes based on their health and lifestyle factors.</p>
+</section>
+</section>
+<section id="exploratory-data-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="exploratory-data-analysis">Exploratory Data Analysis</h3>
 <p>Read in the dataset</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>diabetes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -161,58 +189,60 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
 </div>
-<p>Notice that all the variables are numeric, but most of them (except BMI, MentHlth, PhysHlth, Age) are actually factors with different levels. We need to convert them to factors.</p>
+<p>Notice that all the original variables are numeric, but most of them (except BMI, MentHlth, PhysHlth) are actually factors with different levels. We need to convert them to factors.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List of variables to remain numeric</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>numeric_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"BMI"</span>, <span class="st">"MentHlth"</span>, <span class="st">"PhysHlth"</span>, <span class="st">"Age"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>numeric_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"BMI"</span>, <span class="st">"MentHlth"</span>, <span class="st">"PhysHlth"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert all other variables to factors</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>diabetes <span class="ot">&lt;-</span> diabetes <span class="sc">%&gt;%</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">all_of</span>(numeric_vars), as.factor))</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure the levels of categorical predictors are valid R variable names</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> <span class="fu">names</span>(diabetes)) {</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.factor</span>(diabetes[[col]])) {</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">levels</span>(diabetes[[col]]) <span class="ot">&lt;-</span> <span class="fu">make.names</span>(<span class="fu">levels</span>(diabetes[[col]]))</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># change the factor level to No, Yes for response Diabetes_binary</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>diabetes <span class="ot">&lt;-</span> diabetes <span class="sc">%&gt;%</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary =</span> <span class="fu">ifelse</span>(Diabetes_binary <span class="sc">==</span> <span class="st">"X0"</span>, <span class="st">"No"</span>, <span class="st">"Yes"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary =</span> <span class="fu">as.factor</span>(Diabetes_binary))</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the conversions</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(diabetes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert variables of interest to factors with meaningful level names</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>diabetes <span class="ot">&lt;-</span> diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">HighBP =</span> <span class="fu">factor</span>(HighBP, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">HighChol =</span> <span class="fu">factor</span>(HighChol, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">HeartDiseaseorAttack =</span> <span class="fu">factor</span>(HeartDiseaseorAttack, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">PhysActivity =</span> <span class="fu">factor</span>(PhysActivity, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">HvyAlcoholConsump =</span> <span class="fu">factor</span>(HvyAlcoholConsump, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">GenHlth =</span> <span class="fu">factor</span>(GenHlth, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Excellent"</span>, <span class="st">"Very Good"</span>, <span class="st">"Good"</span>, <span class="st">"Fair"</span>, <span class="st">"Poor"</span>)),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diabetes_binary =</span> <span class="fu">factor</span>(Diabetes_binary, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>) , <span class="at">labels=</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>)),</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diabetes_num =</span> <span class="fu">as.numeric</span>(Diabetes_binary) <span class="co"># for logLoss calculation</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the conversions</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(diabetes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>tibble [253,680 × 22] (S3: tbl_df/tbl/data.frame)
+<pre><code>tibble [253,680 × 23] (S3: tbl_df/tbl/data.frame)
  $ Diabetes_binary     : Factor w/ 2 levels "No","Yes": 1 1 1 1 1 1 1 1 2 1 ...
- $ HighBP              : Factor w/ 2 levels "X0","X1": 2 1 2 2 2 2 2 2 2 1 ...
- $ HighChol            : Factor w/ 2 levels "X0","X1": 2 1 2 1 2 2 1 2 2 1 ...
- $ CholCheck           : Factor w/ 2 levels "X0","X1": 2 1 2 2 2 2 2 2 2 2 ...
+ $ HighBP              : Factor w/ 2 levels "No","Yes": 2 1 2 2 2 2 2 2 2 1 ...
+ $ HighChol            : Factor w/ 2 levels "No","Yes": 2 1 2 1 2 2 1 2 2 1 ...
+ $ CholCheck           : Factor w/ 2 levels "0","1": 2 1 2 2 2 2 2 2 2 2 ...
  $ BMI                 : num [1:253680] 40 25 28 27 24 25 30 25 30 24 ...
- $ Smoker              : Factor w/ 2 levels "X0","X1": 2 2 1 1 1 2 2 2 2 1 ...
- $ Stroke              : Factor w/ 2 levels "X0","X1": 1 1 1 1 1 1 1 1 1 1 ...
- $ HeartDiseaseorAttack: Factor w/ 2 levels "X0","X1": 1 1 1 1 1 1 1 1 2 1 ...
- $ PhysActivity        : Factor w/ 2 levels "X0","X1": 1 2 1 2 2 2 1 2 1 1 ...
- $ Fruits              : Factor w/ 2 levels "X0","X1": 1 1 2 2 2 2 1 1 2 1 ...
- $ Veggies             : Factor w/ 2 levels "X0","X1": 2 1 1 2 2 2 1 2 2 2 ...
- $ HvyAlcoholConsump   : Factor w/ 2 levels "X0","X1": 1 1 1 1 1 1 1 1 1 1 ...
- $ AnyHealthcare       : Factor w/ 2 levels "X0","X1": 2 1 2 2 2 2 2 2 2 2 ...
- $ NoDocbcCost         : Factor w/ 2 levels "X0","X1": 1 2 2 1 1 1 1 1 1 1 ...
- $ GenHlth             : Factor w/ 5 levels "X1","X2","X3",..: 5 3 5 2 2 2 3 3 5 2 ...
+ $ Smoker              : Factor w/ 2 levels "0","1": 2 2 1 1 1 2 2 2 2 1 ...
+ $ Stroke              : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
+ $ HeartDiseaseorAttack: Factor w/ 2 levels "No","Yes": 1 1 1 1 1 1 1 1 2 1 ...
+ $ PhysActivity        : Factor w/ 2 levels "No","Yes": 1 2 1 2 2 2 1 2 1 1 ...
+ $ Fruits              : Factor w/ 2 levels "0","1": 1 1 2 2 2 2 1 1 2 1 ...
+ $ Veggies             : Factor w/ 2 levels "0","1": 2 1 1 2 2 2 1 2 2 2 ...
+ $ HvyAlcoholConsump   : Factor w/ 2 levels "No","Yes": 1 1 1 1 1 1 1 1 1 1 ...
+ $ AnyHealthcare       : Factor w/ 2 levels "0","1": 2 1 2 2 2 2 2 2 2 2 ...
+ $ NoDocbcCost         : Factor w/ 2 levels "0","1": 1 2 2 1 1 1 1 1 1 1 ...
+ $ GenHlth             : Factor w/ 5 levels "Excellent","Very Good",..: 5 3 5 2 2 2 3 3 5 2 ...
  $ MentHlth            : num [1:253680] 18 0 30 0 3 0 0 0 30 0 ...
  $ PhysHlth            : num [1:253680] 15 0 30 0 0 2 14 0 30 0 ...
- $ DiffWalk            : Factor w/ 2 levels "X0","X1": 2 1 2 1 1 1 1 2 2 1 ...
- $ Sex                 : Factor w/ 2 levels "X0","X1": 1 1 1 1 1 2 1 1 1 2 ...
- $ Age                 : num [1:253680] 9 7 9 11 11 10 9 11 9 8 ...
- $ Education           : Factor w/ 6 levels "X1","X2","X3",..: 4 6 4 3 5 6 6 4 5 4 ...
- $ Income              : Factor w/ 8 levels "X1","X2","X3",..: 3 1 8 6 4 8 7 4 1 3 ...</code></pre>
+ $ DiffWalk            : Factor w/ 2 levels "0","1": 2 1 2 1 1 1 1 2 2 1 ...
+ $ Sex                 : Factor w/ 2 levels "0","1": 1 1 1 1 1 2 1 1 1 2 ...
+ $ Age                 : Factor w/ 13 levels "1","2","3","4",..: 9 7 9 11 11 10 9 11 9 8 ...
+ $ Education           : Factor w/ 6 levels "1","2","3","4",..: 4 6 4 3 5 6 6 4 5 4 ...
+ $ Income              : Factor w/ 8 levels "1","2","3","4",..: 3 1 8 6 4 8 7 4 1 3 ...
+ $ Diabetes_num        : num [1:253680] 1 1 1 1 1 1 1 1 2 1 ...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the processed data to a file</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(diabetes, <span class="st">"processed_diabetes.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Check on missing values in the dataset</p>
+<p>Check on missing values in the data set</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(diabetes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -220,11 +250,10 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 </div>
 <p>Data set does not contain any missing values.</p>
-</section>
-<section id="summariesexplanatory-data-analyzes" class="level3">
-<h3 class="anchored" data-anchor-id="summariesexplanatory-data-analyzes">Summaries/Explanatory Data Analyzes</h3>
-<section id="numeric-variables" class="level4">
-<h4 class="anchored" data-anchor-id="numeric-variables">Numeric variables</h4>
+<section id="summariesexplanatory-data-analyzes" class="level4">
+<h4 class="anchored" data-anchor-id="summariesexplanatory-data-analyzes">Summaries/Explanatory Data Analyzes</h4>
+<section id="numeric-variables" class="level5">
+<h5 class="anchored" data-anchor-id="numeric-variables">Numeric variables</h5>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary statistics for BMI, MentHlth and PhysHlth variables</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(diabetes <span class="sc">%&gt;%</span> <span class="fu">select</span>(BMI, MentHlth,PhysHlth))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -255,16 +284,13 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 </div>
 <p>It seems PhysHlth and MentHlth are moderately linear correlated, and also PhysHlth has some positive linear correlation with BMI.</p>
-</section>
-<section id="categorical-variables" class="level4">
-<h4 class="anchored" data-anchor-id="categorical-variables">Categorical variables</h4>
-<p>Now, let’s see Diabetes_binary in the context of BMI</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a box plot</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">y =</span> BMI, <span class="at">fill=</span>Sex)) <span class="sc">+</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes_binary"</span>, <span class="at">y =</span> <span class="st">"BMI"</span>, <span class="at">title =</span> <span class="st">"Box Plot of BMI by Diabetes Status"</span>) <span class="sc">+</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a density plot to explore the relationship between numeric MentHlth and Diabetes_binary</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> MentHlth, <span class="at">fill =</span> Diabetes_binary)) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mental Health Number in 30 days"</span>, <span class="at">y =</span> <span class="st">"Density"</span>, <span class="at">title =</span> <span class="st">"Density Plot of Mental Health by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"red"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -273,14 +299,14 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 </div>
 </div>
-<p>As shown in the above boxplot, BMI does not vary much between different Diabetes_binary.</p>
-<p>Let’s see Diabetes_binary with highBP and highChol</p>
+<p>It shows that people diagonozed with diabetes have more mental health issues in 30 days.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot for Diabetes_binary and HighBP</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">fill =</span> HighBP)) <span class="sc">+</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes_binary)"</span>, <span class="at">fill =</span> <span class="st">"High BP"</span>, <span class="at">y =</span> <span class="st">"Proportion"</span>, <span class="at">title =</span> <span class="st">"Proportion of High BP by Diabetes Status"</span>) <span class="sc">+</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a density plot to explore the relationship between numeric PhysHlth and Diabetes_binary</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> PhysHlth, <span class="at">fill =</span> Diabetes_binary)) <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Physical Health Number in 30 days"</span>, <span class="at">y =</span> <span class="st">"Density"</span>, <span class="at">title =</span> <span class="st">"Density Plot of Mental Health by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"red"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -288,92 +314,159 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot for Diabetes_binary and HighChol</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">fill =</span> HighChol)) <span class="sc">+</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes (binary)"</span>, <span class="at">fill =</span> <span class="st">"High Cholesterol"</span>, <span class="at">y =</span> <span class="st">"Proportion"</span>, <span class="at">title =</span> <span class="st">"Proportion of High Cholesterol by Diabetes Status"</span>) <span class="sc">+</span></span>
+</div>
+<p>There is no evidence that people diagonozed diabetes have more physical health issues within 30 days.</p>
+<p>Now, let’s see Diabetes_binary in the context of BMI</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a box plot to explore the relationship between Diabetes_binary and BMI</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">y =</span> BMI)) <span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">fill =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>)) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes Status"</span>, <span class="at">y =</span> <span class="st">"BMI"</span>, <span class="at">title =</span> <span class="st">"Box Plot of BMI by Diabetes Status"</span>) <span class="sc">+</span></span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDA_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDA_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As shown in the above boxplot, BMI does not vary much between different Diabetes_binary level.</p>
+</section>
+<section id="categorical-variables" class="level5">
+<h5 class="anchored" data-anchor-id="categorical-variables">Categorical variables</h5>
+<p>Let’s see Diabetes_binary with highBP and highChol.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot for Diabetes_binary and HighBP</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">fill =</span> HighBP)) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes_binary)"</span>, <span class="at">fill =</span> <span class="st">"High BP"</span>, <span class="at">y =</span> <span class="st">"Proportion"</span>, <span class="at">title =</span> <span class="st">"Proportion of High BP by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot for Diabetes_binary and HighChol</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_binary, <span class="at">fill =</span> HighChol)) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diabetes (binary)"</span>, <span class="at">fill =</span> <span class="st">"High Cholesterol"</span>, <span class="at">y =</span> <span class="st">"Proportion"</span>, <span class="at">title =</span> <span class="st">"Proportion of High Cholesterol by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>From the graphs plotted above, both with high HighChol and HighBP have a higher proportion of diabetes.</p>
-<p>Let’s look at Diabetes_binary for different level of PhysActivity, HvyAlcoholConsump, GenHlth respectively.</p>
+<p>Let’s check the relationship between HeartDiseaseorAttack and Diabetes_binary</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and PhysActivity</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>phys_activity_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"PhysActivity"</span><span class="ot">=</span>diabetes<span class="sc">$</span>PhysActivity, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>phys_activity_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot to explore the relationship between HeartDiseaseorAttack and Diabetes_binary (Counts)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>count_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> HeartDiseaseorAttack, <span class="at">fill =</span> Diabetes_binary)) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Heart Disease or Heart Attack"</span>, <span class="at">y =</span> <span class="st">"Count"</span>, <span class="at">title =</span> <span class="st">"Count of Heart Disease or Heart Attack by Diabetes Status"</span>, <span class="at">fill =</span> <span class="st">"Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"red"</span>))</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>count_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot to explore the relationship between HeartDiseaseorAttack and Diabetes_binary (Proportions)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>proportion_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes, <span class="fu">aes</span>(<span class="at">x =</span> HeartDiseaseorAttack, <span class="at">fill =</span> Diabetes_binary)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Heart Disease or Heart Attack"</span>, <span class="at">y =</span> <span class="st">"Proportion"</span>, <span class="at">title =</span> <span class="st">"Proportion of Heart Disease or Heart Attack by Diabetes Status"</span>, <span class="at">fill =</span> <span class="st">"Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"red"</span>))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>proportion_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>It looks like the proportion of HeartDiseaseorAttack in person with diabetes are much higher than that without heart disease or heart attack.</p>
+<p>Let’s look at Diabetes_binary for different level of PhysActivity, HvyAlcoholConsump, GenHlth and Fruits respectively.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and PhysActivity</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>phys_activity_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"PhysActivity"</span><span class="ot">=</span>diabetes<span class="sc">$</span>PhysActivity, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>phys_activity_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>            diabetes
 PhysActivity     No    Yes
-          X0  48701  13059
-          X1 169633  22287</code></pre>
+         No   48701  13059
+         Yes 169633  22287</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and HvyAlcoholConsump</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>hvy_alcohol_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"HvyAlcoholConsump"</span><span class="ot">=</span>diabetes<span class="sc">$</span>HvyAlcoholConsump, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>hvy_alcohol_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The tables show that larger number of those who engage in physical activity do not have diabetes compared to those who do not engage in physical activity. This can indicate an inverse relationship between physical activity and the prevalence of diabetes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and HvyAlcoholConsump</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>hvy_alcohol_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"HvyAlcoholConsump"</span><span class="ot">=</span>diabetes<span class="sc">$</span>HvyAlcoholConsump, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>hvy_alcohol_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 diabetes
 HvyAlcoholConsump     No    Yes
-               X0 204910  34514
-               X1  13424    832</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and GenHlth</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>gen_health_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"GenHlth"</span><span class="ot">=</span>diabetes<span class="sc">$</span>GenHlth, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>gen_health_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>       diabetes
-GenHlth    No   Yes
-     X1 44159  1140
-     X2 82703  6381
-     X3 62189 13457
-     X4 21780  9790
-     X5  7503  4578</code></pre>
+              No  204910  34514
+              Yes  13424    832</code></pre>
 </div>
 </div>
-<p>The tables show that larger number of those who engage in physical activity do not have diabetes compared to those who do not engage in physical activity. This can indicate an inverse relationship between physical activity and the prevalence of diabetes.While heavy alcohol comsuption does not show relationship with diabetes.</p>
-<p>GenHlth has 5 levels , so for clear visualization, let’s plot the proportion along with the frequency table for better visionliaztion.</p>
+<p>The heavy alcohol consumption does not show relationship with diabetes.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and GenHlth</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>gen_health_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"GenHlth"</span> <span class="ot">=</span> diabetes<span class="sc">$</span>GenHlth, <span class="st">"Diabetes_binary"</span> <span class="ot">=</span> diabetes<span class="sc">$</span>Diabetes_binary)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate proportions</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>gen_health_prop <span class="ot">&lt;-</span> <span class="fu">prop.table</span>(gen_health_table, <span class="dv">1</span>)</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine frequency and proportion tables</span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>gen_health_combined <span class="ot">&lt;-</span> <span class="fu">cbind</span>(gen_health_table, <span class="fu">round</span>(gen_health_prop, <span class="dv">4</span>))</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Add meaningful column names</span></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(gen_health_combined) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"No_Count"</span>, <span class="st">"Yes_Count"</span>, <span class="st">"No_Proportion"</span>, <span class="st">"Yes_Proportion"</span>)</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to data frame for better readability</span></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>gen_health_combined_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(gen_health_combined)</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the combined table</span></span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Frequency and Proportion Table for Diabetes_binary and GenHlth</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for Diabetes_binary and have Fruits or not once a day</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>ft_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="st">"Fruits"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Fruits, <span class="st">"diabetes"</span><span class="ot">=</span>diabetes<span class="sc">$</span>Diabetes_binary)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>ft_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Frequency and Proportion Table for Diabetes_binary and GenHlth</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(gen_health_combined_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>   No_Count Yes_Count No_Proportion Yes_Proportion
-X1    44159      1140        0.9748         0.0252
-X2    82703      6381        0.9284         0.0716
-X3    62189     13457        0.8221         0.1779
-X4    21780      9790        0.6899         0.3101
-X5     7503      4578        0.6211         0.3789</code></pre>
+<pre><code>      diabetes
+Fruits     No    Yes
+     0  78129  14653
+     1 140205  20693</code></pre>
 </div>
 </div>
-<p>We see that the diabetes proportion significantly increases as the level of GenHlth increases.</p>
+<p>It doesn’t seem the fruit affect the Diabetes_binary significantly.</p>
+<p>GenHlth has 5 levels , so for clear visualization, let’s plot the proportion along with the frequency for better visionlization.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the ggplot for proportions and frequencies</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> diabetes, <span class="fu">aes</span>(<span class="at">x =</span> GenHlth, <span class="at">fill =</span> Diabetes_binary)) <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>, <span class="at">stat =</span> <span class="st">"count"</span>) <span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">stat =</span> <span class="st">"count"</span>, <span class="fu">aes</span>(<span class="at">label =</span> ..count..), <span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Proportion of Diabetes by General Health"</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"General Health"</span>,</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Proportion"</span>,</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Diabetes"</span>) <span class="sc">+</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"pink"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"lightblue"</span>)) <span class="sc">+</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The dot-dot notation (`..count..`) was deprecated in ggplot2 3.4.0.
+ℹ Please use `after_stat(count)` instead.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We see that the diabetes proportion significantly increases as the level of GenHlth increases (health condition gets poorer).</p>
+<p>Overall, from the EDA we will focus on the predictors HighBP, HighChol, HeartDiseaseorAttack, PhysActivity, MentHlth, GenHlth.</p>
 </section>
 </section>
 </section>
-<section id="click-here-for-the-modeling-page" class="level2">
-<h2 class="anchored" data-anchor-id="click-here-for-the-modeling-page"><a href="Modeling.html">Click here for the Modeling Page</a></h2>
+<section id="click-here-for-the-modeling-page" class="level3">
+<h3 class="anchored" data-anchor-id="click-here-for-the-modeling-page"><a href="Modeling.html">Click here for the Modeling Page</a></h3>
 
 
 </section>

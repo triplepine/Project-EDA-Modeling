@@ -9,7 +9,7 @@ library(tidyverse)
 library(corrplot)
 library(caret)
 library(Metrics)
-library(ROSE)
+
 ```
 
 ### Modeling
@@ -55,12 +55,12 @@ control <- trainControl(method = "cv",
                         )
 ```
 
-Model 1: Includes predictors: HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth + BMI
+Model 1: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth+ MentHlth 
 
 ```{r}
 # Fit Model 1: 
 set.seed(123)
-logRegFit_1 <- train(Diabetes_binary ~  HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth + BMI ,
+logRegFit_1 <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity +GenHlth+ MentHlth ,
                      data = train, 
                      method = "glm", 
                      family = "binomial",
@@ -69,14 +69,14 @@ logRegFit_1 <- train(Diabetes_binary ~  HighChol+ HeartDiseaseorAttack+ PhysActi
 logRegFit_1
 ```
 
-This Logistic Regression Model 1 has a logLoss of 0.3383.
+This Logistic Regression Model 1 has a logLoss of 0.33622.
 
-Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth, possibly important based on data analysis.
+Model 2: Includes predictors:  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth.
 
 ```{r}
 # Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth
 set.seed(123)
-logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth, 
+logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth +MentHlth, 
                      data = train, 
                      method = "glm", 
                      family = "binomial",
@@ -85,7 +85,7 @@ logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ 
                      trControl = control)
 logRegFit_2
 ```
-The logLoss of this model 2 is 0.32935.
+The logLoss of this model 2 is 0.3364.
 
 Model 3: LASSO Logistic Regression
 
@@ -96,7 +96,7 @@ tune_grid <- expand.grid(alpha = 1,  # Lasso regression
 
 # Fit logistic regression with Lasso regularization
 set.seed(123)
-logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth,
+logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth + MentHlth,
                      data = train, 
                      method = "glmnet", 
                      family = "binomial",
@@ -108,9 +108,9 @@ logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ B
 logRegLasso
 ```
 
-Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.32937.
+Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.33624.
 
-From the above three models, I'd choose the model 2 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth as the best of these three logistic regression models.
+From the above three models, I'd choose the model 1 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth, MentHlth as the best of these three logistic regression models.
 
 #### Classification Tree
 
@@ -120,7 +120,7 @@ Now, let's fit a classification tree using rpart: tuning parameter is cp, use va
 
 ```{r, warning=FALSE, message=FALSE}
 set.seed(123)
-cl_tree_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ BMI + GenHlth,
+cl_tree_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth + MentHlth,
                  data=train,
                  method="rpart",
                  trControl=control,
@@ -129,7 +129,7 @@ cl_tree_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ BM
 cl_tree_fit
 ```
 
-We will select the Classification Tree with cp=0, which logLoss value is 0.3382.
+We will select the Classification Tree with cp=0, the corresponding logLoss value is 0.3418.
 
 #### Random Forest
 
@@ -146,14 +146,58 @@ control_rf <- trainControl(method = "cv",
 # Fit Random Forest
 
 set.seed(123)
-rf_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth,
+rf_fit <-train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth + MentHlth,
                  data=train,
                  method="rf",
                  trControl=control_rf,
                  #preProcess=c("center","scale"),
-                 tuneGrid=data.frame(mtry=1:5),
+                 tuneGrid=data.frame(mtry=1:6),
                  ntree=100)
 rf_fit
 
+```
+So we will pick the random forest model with mtry = 6 (note that the corresponding logLoss is 3.927, which seems unreasonable, but for comparison purposes, we will still select this one as it's the best among this type).
+
+
+#### Final Model Selection
+
+Now, we have chosen the best model of each type. We will compare the three models on the test set and find the overall best model.
+
+
+Logistic Regression Predictions and logloss calculation
+```{r}
+fitted_log <- predict(logRegFit_1, newdata = select(test,- c(Diabetes_binary, Diabetes_num)), type = "prob")[ ,2]
+
+log_loss_logRegFit_1 <- logLoss(test$Diabetes_num, fitted_log)
+log_loss_logRegFit_1
+```
+
+Classical Tree Predictions and logloss calculation
+```{r}
+fitted_cl <- predict(cl_tree_fit, newdata = select(test,- c(Diabetes_binary, Diabetes_num)), type = "prob")[, 2]
+
+# Add smoothing to calibrated probabilities
+epsilon <- 1e-15
+fitted_cl <- pmin(pmax(fitted_cl, epsilon), 1 - epsilon)
+log_loss_class <- logLoss(test$Diabetes_num, fitted_cl)
+log_loss_class
+```
+
+Random Forest Model Predictions and log loss calculation
+
+```{r}
+fitted_rf <- predict(rf_fit, newdata = select(test, -c(Diabetes_binary, Diabetes_num)), type = "prob")[, 2]
+epsilon <- 1e-15
+fitted_rf <- pmin(pmax(fitted_rf, epsilon), 1 - epsilon)
+log_loss_rf <- logLoss(test$Diabetes_num, fitted_rf)
+log_loss_rf
+```
+
+
+Based on the logLoss metric comparison, we will select the classfication tree as the best model.
+
+```{r}
+# Save the best model to a file
+saveRDS(cl_tree_fit, "cl_tree_fit.rds")
 ```
 
