@@ -71,10 +71,11 @@ logRegFit_1
 
 This Logistic Regression Model 1 has a logLoss of 0.33622.
 
+
 Model 2: Includes predictors:  HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ MentHlth.
 
 ```{r}
-# Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth
+# Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth + MentHlth
 set.seed(123)
 logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ GenHlth+ MentHlth, 
                      data = train, 
@@ -85,7 +86,8 @@ logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ 
                      trControl = control)
 logRegFit_2
 ```
-The logLoss of this model 2 is 0.3364.
+The logLoss of this model 2 is 0.3366.
+
 
 Model 3: LASSO Logistic Regression
 
@@ -108,7 +110,7 @@ logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ P
 logRegLasso
 ```
 
-Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.33624.
+Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.3543.
 
 From the above three models, I'd choose the model 1 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth, MentHlth as the best of these three logistic regression models.
 
@@ -184,6 +186,7 @@ log_loss_logRegFit_1 <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
 print(log_loss_logRegFit_1)
 ```
 
+
 Classical Tree Predictions and logloss calculation
 ```{r}
 # Ensure all required predictors are included in the newdata
@@ -221,8 +224,7 @@ log_loss_rf <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
 print(log_loss_rf)
 ```
 
-
-Based on the logLoss metric comparison, we will select the logistic regression model with logLoss = 0.3306 as the best model.
+Based on the logLoss metric comparison, we will select the logistic regression model 1 (logRegFit_1 with 6 predictors: HighBP+ HighChol+ HeartDiseaseorAttack + PhysActivity + GenHlth + MentHlth) with logLoss = 0.3306 as our best model for this data set.
 
 
 ```{r}

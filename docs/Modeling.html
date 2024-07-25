@@ -204,7 +204,7 @@ Resampling results:
 <p>This Logistic Regression Model 1 has a logLoss of 0.33622.</p>
 <p>Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ MentHlth.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth</span></span>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 2: Includes predictors: HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ GenHlth + MentHlth</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>logRegFit_2 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span>  HighBP<span class="sc">+</span> HighChol<span class="sc">+</span> HeartDiseaseorAttack<span class="sc">+</span> GenHlth<span class="sc">+</span> MentHlth, </span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> train, </span>
@@ -230,7 +230,7 @@ Resampling results:
   0.3366284</code></pre>
 </div>
 </div>
-<p>The logLoss of this model 2 is 0.3364.</p>
+<p>The logLoss of this model 2 is 0.3366.</p>
 <p>Model 3: LASSO Logistic Regression</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a tune grid for lambda values (regularization strength)</span></span>
@@ -279,7 +279,7 @@ logLoss was used to select the optimal model using the smallest value.
 The final values used for the model were alpha = 1 and lambda = 0.</code></pre>
 </div>
 </div>
-<p>Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.33624.</p>
+<p>Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.3543.</p>
 <p>From the above three models, I’d choose the model 1 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth, MentHlth as the best of these three logistic regression models.</p>
 </section>
 <section id="classification-tree" class="level4">
@@ -545,7 +545,7 @@ The final value used for the model was mtry = 6.</code></pre>
 3.951543 </code></pre>
 </div>
 </div>
-<p>Based on the logLoss metric comparison, we will select the logistic regression model with logLoss = 0.3306 as the best model.</p>
+<p>Based on the logLoss metric comparison, we will select the logistic regression model 1 (logRegFit_1 with 6 predictors: HighBP+ HighChol+ HeartDiseaseorAttack + PhysActivity + GenHlth + MentHlth) with logLoss = 0.3306 as our best model for this data set.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the best model to a file</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(logRegFit_1, <span class="st">"logRegFit_1.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>

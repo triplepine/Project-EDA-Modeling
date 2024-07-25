@@ -10,16 +10,16 @@ library(dplyr)
 diabetes <- readRDS("processed_diabetes.rds")
 
 # Load the best model
-load("rf_fit.RData")
+logRegFit_1 <-readRDS("logRegFit_1.rds")
 
 # Train the classification tree model using the entire dataset
 final_model <- rpart(Diabetes_binary~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+GenHlth + MentHlth, data = diabetes, control = rpart.control(cp = 0))
 
-# Define the selected predictors
+# Define the selected 6 predictors
 selected_predictors <- c("HighBP", "HighChol", "HeartDiseaseorAttack", "PhysActivity", "GenHlth", "MentHlth")
 
-# Make predictions on the entire dataset using the cl_tree_fit model
-final_predictions <- predict(cl_tree_fit, newdata = select(diabetes, all_of(selected_predictors)), type = "prob")
+# Make predictions on the entire dataset using the logRegFit_1 model
+final_predictions <- predict(logRegFit_1, newdata = select(diabetes, all_of(selected_predictors)), type = "prob")
 
 # Calculate default values
 default_values <- diabetes %>% 
@@ -29,7 +29,7 @@ default_values <- diabetes %>%
     HeartDiseaseorAttack = names(which.max(table(HeartDiseaseorAttack))),
     PhysActivity = names(which.max(table(HeartDiseaseorAttack))),
     GenHlth = names(which.max(table(GenHlth))),
-    MentHlth = mean(MentHlth, na.rm = TRUE)
+    MentHlth = mean(as.numeric(MentHlth), na.rm = TRUE) 
   )
 
 #* @apiTitle Diabetes Prediction API
@@ -54,10 +54,10 @@ function(HighBP = default_values$HighBP,
                          HeartDiseaseorAttack = HeartDiseaseorAttack,
                          PhysActivity = PhysActivity,
                          GenHlth = GenHlth,
-                         MentHlth = MentHlth)
+                         MentHlth = as.numeric(MentHlth))
   
-  # Predict using the best model (cl_fit)
-  prediction <- predict(cl_fit, pred_data, type = "prob")
+  # Predict using the best model (logRegFit_1)
+  prediction <- predict(logRegFit_1, pred_data, type = "prob")
   
   return(list(prediction = prediction))
 }
@@ -72,7 +72,9 @@ function() {
   )
 }
 
-# Example function calls to check that it works:
-# curl -X POST "http://localhost:8000/pred?HighBP=1&HighChol=0&HeartDiseaseorAttack=0&PhysActivity=1&GenHlth=3"
-# curl -X POST "http://localhost:8000/pred"
-# curl -X GET "http://localhost:8000/info"
+# Example function calls:
+# curl -X POST "http://localhost:8000/pred?HighBP=Yes&HighChol=Yes&HeartDiseaseorAttack=No&PhysActivity=Yes&GenHlth=Good&MentHlth=15"
+
+# curl -X POST "http://localhost:8000/pred?HighBP=No&HighChol=No&HeartDiseaseorAttack=Yes&PhysActivity=No&GenHlth=Poor&MentHlth=30"
+
+# curl -X POST "http://localhost:8000/pred?HighBP=Yes&HighChol=Yes&HeartDiseaseorAttack=Yes&PhysActivity=Yes&GenHlth=Fair&MentHlth=3"
