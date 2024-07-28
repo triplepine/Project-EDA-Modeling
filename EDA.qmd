@@ -1,5 +1,6 @@
 ---
 title: "EDA"
+subtitle: "Final Project -st558 by Jie Chen"
 format: html
 editor: visual
 ---
@@ -144,7 +145,7 @@ ggplot(diabetes, aes(x = MentHlth, fill = Diabetes_binary)) +
   theme_minimal() +
   scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
 ```
-It shows that people diagonozed with diabetes have more mental health issues in 30 days.
+It shows that people diagonozed with diabetes may have more mental health issues in 30 days.
 
 
 ```{r}
@@ -197,7 +198,7 @@ count_plot <- ggplot(diabetes, aes(x = HeartDiseaseorAttack, fill = Diabetes_bin
   geom_bar(position = "dodge") +
   labs(x = "Heart Disease or Heart Attack", y = "Count", title = "Count of Heart Disease or Heart Attack by Diabetes Status", fill = "Diabetes Status") +
   theme_minimal() +
-  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+  scale_fill_manual(values = c("No" = "lightblue", "Yes" = "pink"))
 count_plot
 
 # Create a bar plot to explore the relationship between HeartDiseaseorAttack and Diabetes_binary (Proportions)
@@ -206,7 +207,7 @@ proportion_plot <- ggplot(diabetes, aes(x = HeartDiseaseorAttack, fill = Diabete
   scale_y_continuous(labels = scales::percent) +
   labs(x = "Heart Disease or Heart Attack", y = "Proportion", title = "Proportion of Heart Disease or Heart Attack by Diabetes Status", fill = "Diabetes Status") +
   theme_minimal() +
-  scale_fill_manual(values = c("No" = "blue", "Yes" = "red"))
+  scale_fill_manual(values = c("No" = "lightblue", "Yes" = "pink"))
 
 proportion_plot
 ```

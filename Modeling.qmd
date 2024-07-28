@@ -66,6 +66,8 @@ logRegFit_1 <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ P
                      family = "binomial",
                      metric = "logLoss", 
                      trControl = control)
+
+summary(logRegFit_1)
 logRegFit_1
 ```
 
@@ -84,35 +86,29 @@ logRegFit_2 <- train(Diabetes_binary ~  HighBP+ HighChol+ HeartDiseaseorAttack+ 
                      metric = "logLoss", 
                      preProcess = c("center","scale"),
                      trControl = control)
+
+summary(logRegFit_2)
 logRegFit_2
 ```
-The logLoss of this model 2 is 0.3366.
+The logLoss of this model 2 is 0.3366284.
 
-
-Model 3: LASSO Logistic Regression
-
+Model 3: Logistic Regression including interaction term MentHlth: PhysHlth
 ```{r}
-# Define a tune grid for lambda values (regularization strength)
-tune_grid <- expand.grid(alpha = 1,  # Lasso regression
-                         lambda = seq(0, 1, by = 0.1))
-
-# Fit logistic regression with Lasso regularization
+# Model 3 with interaction term 
 set.seed(123)
-logRegLasso <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity+ MentHlth,
+logRegFit_3 <- train(Diabetes_binary ~ HighBP+ HighChol+ HeartDiseaseorAttack+ PhysActivity + MentHlth:PhysHlth + GenHlth,
                      data = train, 
-                     method = "glmnet", 
+                     method = "glm", 
                      family = "binomial",
                      metric = "logLoss", 
-                     preProcess = c("center","scale"),
-                     trControl = control,
-                     tuneGrid = tune_grid)
-
-logRegLasso
+                     trControl = control)
+summary(logRegFit_3)
+logRegFit_3
 ```
 
-Obtained the best tuning parameter lambda is 0, alpha is 1 and logLoss is 0.3543.
 
-From the above three models, I'd choose the model 1 with predictors:HighBP, HighChol,HeartDiseaseorAttack,PhysActivity,GenHlth, MentHlth as the best of these three logistic regression models.
+From the above three models, I'd choose the model 1 with predictors: HighBP, HighChol, HeartDiseaseorAttack, PhysActivity, GenHlth, MentHlth with the lowest logLoss as the best of these three logistic regression models.
+
 
 #### Classification Tree
 
@@ -224,7 +220,9 @@ log_loss_rf <- mnLogLoss(pred_data, lev = levels(test$Diabetes_binary))
 print(log_loss_rf)
 ```
 
+
 Based on the logLoss metric comparison, we will select the logistic regression model 1 (logRegFit_1 with 6 predictors: HighBP+ HighChol+ HeartDiseaseorAttack + PhysActivity + GenHlth + MentHlth) with logLoss = 0.3306 as our best model for this data set.
+
 
 
 ```{r}
